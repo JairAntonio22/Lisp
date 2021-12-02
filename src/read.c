@@ -9,12 +9,16 @@
 #define DEBUG false
 
 extern int errno;
+
 static size_t line;
 static size_t col;
+
 static char *data;
+
 static bool valid;
 static bool eof_found;
 static bool is_newline;
+
 static token_t curr_token;
 
 void gettoken();
@@ -48,7 +52,7 @@ void next() {
         }
 
         if (DEBUG) {
-            print_token(curr_token);
+            println_token(curr_token);
         }
     }
 }
@@ -91,12 +95,7 @@ ast_t* read_list() {
 
         if (curr_token.type == '\0') {
             valid = false;
-            printf(
-                "line %zu:%zu unbalanced parenthesis\n",
-                curr_token.line,
-                curr_token.col
-            );
-
+            printf("Syntax error: unbalanced parenthesis\n");
             break;
         }
 
@@ -128,6 +127,8 @@ char* getsymbol();
 char* getnumber();
 char* getcomment();
 
+token_e getnum_t(char *literal);
+
 void gettoken() {
     while (isignorable(data[0])) {
         nextchar();
@@ -157,19 +158,27 @@ void gettoken() {
 
     } else if (data[0] == ';') {
         curr_token.type = COMMENT;
-        curr_token.literal = getcomment();
+        curr_token.string = getcomment();
 
     } else if (data[0] == '"') {
         curr_token.type = STRING;
-        curr_token.literal = getstring();
+        curr_token.string = getstring();
 
     } else if (isdigit(data[0])) {
-        curr_token.type = NUMBER;
-        curr_token.literal = getnumber();
+        char *literal = getnumber();
+
+        if (getnum_t(literal) == INTEGER) {
+            curr_token.type = INTEGER;
+            curr_token.integer = atoi(literal);
+
+        } else {
+            curr_token.type = REAL;
+            curr_token.real = atof(literal);
+        }
 
     } else {
         curr_token.type = SYMBOL;
-        curr_token.literal = getsymbol();
+        curr_token.string = getsymbol();
     }
 }
 
@@ -265,12 +274,7 @@ char* getstring() {
 
         case '\0': {
             valid = false;
-            printf(
-                "line %zu:%zu missing \"\n",
-                curr_token.line,
-                curr_token.col
-            );
-
+            printf("Syntax error: unclosed string\n");
             goto FAIL;
 
         } break;
@@ -282,6 +286,7 @@ char* getstring() {
         string = check_capacity(string, i, capacity);
     }
 
+    string[i] = '\0';
     return string;
 
 FAIL:
@@ -292,12 +297,13 @@ char* getsymbol() {
     size_t capacity = 0x10, i = 0;
     char *string = malloc(capacity);
 
-    while (!isspace(data[0]) && !isreserved(data[0])) {
+    while (!isignorable(data[0]) && !isreserved(data[0])) {
         string[i++] = data[0];
         string = check_capacity(string, i, capacity);
         nextchar();
     }
 
+    string[i] = '\0';
     return string;
 }
 
@@ -325,6 +331,7 @@ char* getnumber() {
         }
     }
 
+    string[i] = '\0';
     return string;
 }
 
@@ -340,5 +347,16 @@ char* getcomment() {
         nextchar();
     }
 
+    string[i] = '\0';
     return string;
+}
+
+token_e getnum_t(char *literal) {
+    while (*literal != '\0') {
+        if (*(literal++) == '.') {
+            return REAL;
+        }
+    }
+
+    return INTEGER;
 }

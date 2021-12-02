@@ -1,8 +1,6 @@
 
 CC=clang
-CFLAGS=-Wall -Wextra -Wpedantic -g
-# INCLUDE= -I include
-# LIB=-L lib -l SDL2-2.0.0
+CFLAGS=-Wall -Wextra -Wpedantic
 
 SRC=src
 SRCS=$(wildcard src/*.c)

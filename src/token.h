@@ -2,10 +2,12 @@
 #define TOKEN_H
 
 #include <stdlib.h>
+#include <stdbool.h>
 
 typedef enum {
     SYMBOL = 0x100,
-    NUMBER,
+    INTEGER,
+    REAL,
     STRING,
     COMMENT,
     SPLICE_QUOTE,
@@ -13,10 +15,15 @@ typedef enum {
 
 typedef struct {
     token_e type;
-    char * literal;
+    union {
+        char *string;
+        int integer;
+        float real;
+    };
     size_t line, col;
 } token_t;
 
 void print_token(token_t token);
+void println_token(token_t token);
 
 #endif

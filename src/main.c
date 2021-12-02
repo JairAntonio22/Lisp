@@ -4,17 +4,15 @@
 #include <errno.h>
 
 #include "read.h"
+#include "eval.h"
 #include "print.h"
 
 extern int errno;
 
-void eval(char *input) {
-}
-
 void rep(char *input) {
-    ast_t* tree = read(input);
-    // eval(input);
-    print(tree);
+    ast_t* expr = read(input);
+    ast_t* res = eval(expr);
+    print(res);
 }
 
 int main(void) {

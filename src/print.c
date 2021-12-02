@@ -31,15 +31,7 @@ void print_aux(ast_t *node) {
     } break;
 
     case ATOM: {
-        if (node->token.type < 0x100) {
-            if (node->token.type == '\0') {
-                printf("\n");
-            } else {
-                printf("%c", node->token.type);
-            }
-        } else {
-            printf("%s", node->token.literal);
-        }
+        print_token(node->token);
     } break;
 
     default:
